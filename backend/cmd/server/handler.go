@@ -126,25 +126,21 @@ func add(db Db, fetcher Fetcher) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 		doUpdate := false
-		title, ok := db.Get(ctx, req.Url)
+		bookmarkData, ok := db.Get(ctx, req.Url)
 		if !ok {
 			log.Println("fetching bookmark", req.Url)
 			doUpdate = true
-			_, err := fetcher.Fetch(ctx, req.Url)
+			bookmarkData, err = fetcher.FetchBookmark(ctx, req.Url)
 			if err != nil {
 				logError(w, fmt.Sprintf("Error retrieving site: %v", err), http.StatusBadRequest)
 				return
 			}
-                        title = "TODO title for " + req.Url
 		}
 		if doUpdate {
-			err = db.Insert(ctx, req.Url, title)
+			err = db.Insert(ctx, req.Url, bookmarkData)
 			if err != nil {
 				log.Printf("Error inserting into db: %v", err)
 			}
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, title)
 	}
 }

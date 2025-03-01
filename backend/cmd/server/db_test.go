@@ -18,11 +18,11 @@ func TestInsertGet(t *testing.T) {
 	db := setupTest(t)
 	ctx := context.Background()
 
-	assert.NilError(t, db.Insert(ctx, "http://example.com", `bookmark`))
-	assert.Assert(t, nil != db.Insert(ctx, "http://example.com", `bookmark`))
-	title, ok := db.Get(ctx, "http://example.com")
+	assert.NilError(t, db.Insert(ctx, "http://example.com", BookmarkData{Title: `bookmark`}))
+	assert.Assert(t, nil != db.Insert(ctx, "http://example.com", BookmarkData{Title: `bookmark`}))
+	bookmark, ok := db.Get(ctx, "http://example.com")
 	assert.Assert(t, ok)
-	assert.Equal(t, title, `bookmark`)
+	assert.Equal(t, bookmark.Title, `bookmark`)
 	_, ok = db.Get(ctx, "http://foo.com")
 	assert.Assert(t, !ok)
 }
@@ -32,9 +32,9 @@ func TestRecents(t *testing.T) {
 	ctx := context.Background()
 
 	// set up two bookmarks
-	assert.NilError(t, db.Insert(ctx, "http://example.com", `bookmark`))
-	assert.NilError(t, db.Insert(ctx, "http://example2.com", `bookmark2`))
-	assert.NilError(t, db.Insert(ctx, "http://example3.com", `""`))
+	assert.NilError(t, db.Insert(ctx, "http://example.com", BookmarkData{Title: `bookmark`}))
+	assert.NilError(t, db.Insert(ctx, "http://example2.com", BookmarkData{Title: `bookmark2`}))
+	assert.NilError(t, db.Insert(ctx, "http://example3.com", BookmarkData{Title: `""`}))
 
 	// ask for 5, expect 2
 	recents, err := db.Recents(ctx, 5)
@@ -47,8 +47,8 @@ func TestFavorites(t *testing.T) {
 	ctx := context.Background()
 
 	// set up two bookmarks
-	assert.NilError(t, db.Insert(ctx, "http://example.com", `bookmark`))
-	assert.NilError(t, db.Insert(ctx, "http://example2.com", `bookmark2`))
+	assert.NilError(t, db.Insert(ctx, "http://example.com", BookmarkData{Title: `bookmark`}))
+	assert.NilError(t, db.Insert(ctx, "http://example2.com", BookmarkData{Title: `bookmark2`}))
 
 	// ask for 5, expect 2
 	faves, err := db.Favorites(ctx, 5)
@@ -70,8 +70,8 @@ func TestSearch(t *testing.T) {
 	ctx := context.Background()
 
 	// set up two bookmarks
-	assert.NilError(t, db.Insert(ctx, "http://example.com", `one two"}`))
-	assert.NilError(t, db.Insert(ctx, "http://example2.com", `one three"}`))
+	assert.NilError(t, db.Insert(ctx, "http://example.com", BookmarkData{Title: `one two"}`}))
+	assert.NilError(t, db.Insert(ctx, "http://example2.com", BookmarkData{Title: `one three"}`}))
 
 	// expect 2
 	results, err := db.Search(ctx, "one")
@@ -145,7 +145,7 @@ func TestInsertUpdatesLastAccessed(t *testing.T) {
 	assert.Equal(t, "bookmark2", recents[0].Title)
 
 	// a inserting example should make it the first result
-	assert.NilError(t, db.Insert(ctx, "http://example.com", "bookmark"))
+	assert.NilError(t, db.Insert(ctx, "http://example.com", BookmarkData{Title: "bookmark"}))
 	recents, err = db.Recents(ctx, 1)
 	assert.NilError(t, err)
 	assert.Equal(t, 1, len(recents))

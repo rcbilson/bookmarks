@@ -13,25 +13,19 @@ import (
 	"gotest.tools/assert"
 )
 
-var urls = [...]string{
-	"https://www.google.com",
-	"https://www.seriouseats.com",
-}
-
 type mockFetcher struct {
 }
 
 func (*mockFetcher) Fetch(_ context.Context, url string) ([]byte, error) {
-	return []byte("html for " + url), nil
+	return []byte("<html><head><title>title for " + url + "</title></head></html>"), nil
 }
 
-type mockLlm struct {
-	t *testing.T
+func (*mockFetcher) FetchBookmark(_ context.Context, url string) (BookmarkData, error) {
+	return BookmarkData{Title: "title for " + url + "</title></head></html>"}, nil
 }
 
 type titleStruct struct {
-	Title       string   `json:"title"`
-	Ingredients []string `json:"ingredients"`
+	Title string `json:"title"`
 }
 
 type bookmarkListEntryStruct struct {
@@ -55,11 +49,7 @@ func addTest(t *testing.T, db Db, url string) {
 	add(db, testFetcher)(w, req)
 	resp := w.Result()
 	defer resp.Body.Close()
-
-	// var title titleStruct
-	// err = json.NewDecoder(resp.Body).Decode(&title)
-	// assert.NilError(t, err)
-	// assert.Equal(t, "title for html for "+url, title.Title)
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
 }
 
 func listTest(t *testing.T, handler func(http.ResponseWriter, *http.Request), reqName string, reqCount int, expCount int, resultList *bookmarkListStruct) {
@@ -91,12 +81,13 @@ func searchTest(t *testing.T, db Db, pattern string, expCount int) {
 	assert.Equal(t, expCount, len(bookmarkList))
 }
 
-func hitTest(_ *testing.T, db Db, urlstr string) {
+func hitTest(t *testing.T, db Db, urlstr string) {
 	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/hit?url=%s", url.QueryEscape(urlstr)), nil)
 	w := httptest.NewRecorder()
 	hit(db)(w, req)
 	resp := w.Result()
 	defer resp.Body.Close()
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
 }
 
 // TODO: test something other than the happy path

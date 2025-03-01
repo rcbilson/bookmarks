@@ -12,10 +12,10 @@ import (
 type Db interface {
 	Close()
 	Hit(ctx context.Context, url string) error
-	Get(ctx context.Context, url string) (string, bool)
+	Get(ctx context.Context, url string) (BookmarkData, bool)
 	Recents(ctx context.Context, count int) (bookmarkList, error)
 	Favorites(ctx context.Context, count int) (bookmarkList, error)
-	Insert(ctx context.Context, url string, title string) error
+	Insert(ctx context.Context, url string, bookmark BookmarkData) error
 	Search(ctx context.Context, pattern string) (bookmarkList, error)
 }
 
@@ -74,15 +74,15 @@ func (dbctx *DbContext) Hit(ctx context.Context, url string) error {
 }
 
 // Returns a bookmark title if one exists in the database
-func (dbctx *DbContext) Get(ctx context.Context, url string) (string, bool) {
+func (dbctx *DbContext) Get(ctx context.Context, url string) (BookmarkData, bool) {
 	row := dbctx.db.QueryRowContext(ctx, "SELECT title FROM bookmarks WHERE url = ?", url)
 	var title string
 	err := row.Scan(&title)
 	if err != nil {
-		return "", false
+		return BookmarkData{}, false
 	}
 	_, _ = dbctx.db.Exec("UPDATE bookmarks SET lastAccess = datetime('now') WHERE url = ?", url)
-	return title, true
+	return BookmarkData{Title: title}, true
 }
 
 // Returns the most recently-accessed bookmarks
@@ -126,8 +126,8 @@ func (dbctx *DbContext) Favorites(ctx context.Context, count int) (bookmarkList,
 }
 
 // Insert the bookmark title corresponding to the url into the database
-func (dbctx *DbContext) Insert(ctx context.Context, url string, title string) error {
-	_, err := dbctx.db.ExecContext(ctx, "INSERT INTO bookmarks (url, title, lastAccess, hitCount) VALUES (?, ?, datetime('now'), 0)", url, title)
+func (dbctx *DbContext) Insert(ctx context.Context, url string, bookmark BookmarkData) error {
+	_, err := dbctx.db.ExecContext(ctx, "INSERT INTO bookmarks (url, title, lastAccess, hitCount) VALUES (?, ?, datetime('now'), 0)", url, bookmark.Title)
 	return err
 }
 

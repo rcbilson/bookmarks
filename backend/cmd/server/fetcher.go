@@ -1,15 +1,25 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
+
+type BookmarkData struct {
+	Title string
+	Icon  []byte
+}
 
 type Fetcher interface {
 	Fetch(ctx context.Context, url string) ([]byte, error)
+	FetchBookmark(ctx context.Context, url string) (BookmarkData, error)
 }
 
 type FetcherImpl struct {
@@ -46,4 +56,41 @@ func (*FetcherImpl) Fetch(ctx context.Context, url string) ([]byte, error) {
 		return nil, err
 	}
 	return body, nil
+}
+
+func findChild(n *html.Node, dataAtom atom.Atom) *html.Node {
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if c.Type == html.ElementNode && c.DataAtom == dataAtom {
+			return c
+		}
+	}
+	return nil
+}
+
+func (fetcher *FetcherImpl) FetchBookmark(ctx context.Context, url string) (bookmark BookmarkData, err error) {
+	page, err := fetcher.Fetch(ctx, url)
+	if err != nil {
+		return bookmark, fmt.Errorf("Error retrieving site: %v", err)
+	}
+	// parse the html in the page and extract the title
+	doc, err := html.Parse(bytes.NewReader(page))
+	if err != nil {
+		return
+	}
+
+	htmlNode := findChild(doc, atom.Html)
+	if htmlNode == nil {
+		return
+	}
+	headNode := findChild(htmlNode, atom.Head)
+	if headNode == nil {
+		return
+	}
+	for n := headNode.FirstChild; n != nil; n = n.NextSibling {
+		if n.Type == html.ElementNode && n.DataAtom == atom.Title {
+			bookmark.Title = n.FirstChild.Data
+			break
+		}
+	}
+	return
 }

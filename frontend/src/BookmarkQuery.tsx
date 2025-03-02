@@ -3,7 +3,6 @@
 // the bookmark url is fetched and the text area below the url is updated
 // with the bookmark contents.
 import React from "react";
-import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { useQuery } from '@tanstack/react-query'
 
@@ -17,8 +16,6 @@ interface Props {
 }
 
 const BookmarkQuery: React.FC<Props> = ({queryPath}: Props) => {
-  const navigate = useNavigate();
- 
   const fetchQuery = (queryPath: string) => {
     return async () => {
       console.log("fetching " + queryPath);
@@ -37,7 +34,7 @@ const BookmarkQuery: React.FC<Props> = ({queryPath}: Props) => {
     return () => {
       const encodedUrl = encodeURIComponent(url);
       axios.post("/api/hit?url=" + encodedUrl);
-      navigate("/show/" + encodedUrl);
+      window.open(url, "_blank");
     }
   }
  

@@ -1,0 +1,59 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: left;
+  font-family: 'Outfit Variable', sans-serif;
+}
+
+#searchbar {
+  display: flex;
+  padding: 1em;
+}
+
+#navlinks {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  padding-left: 0.5em;
+}
+
+#url {
+  flex: 1;
+}
+
+#title {
+  font-size: 1.5em;
+  line-height: 1.1;
+}
+
+#url {
+  font-size: 1em;
+  line-height: 1.1;
+}
+
+#method {
+  line-height: 1.1;
+}
+
+.recipeEntry {
+  padding: 0.5em;
+  cursor: pointer;
+}
+
+.recipeEntry .url {
+  font-size: 0.75em;
+}
+
+.textclick {
+  cursor: pointer;
+}
+
+#recipeHeader {
+  display: flex;
+  flex-direction: row;
+}
+
+#recipeHeader #titleBox {
+  flex: 1;
+}

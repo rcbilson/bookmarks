@@ -36,12 +36,12 @@
   line-height: 1.1;
 }
 
-.recipeEntry {
+.bookmarkEntry {
   padding: 0.5em;
   cursor: pointer;
 }
 
-.recipeEntry .url {
+.bookmarkEntry .url {
   font-size: 0.75em;
 }
 
@@ -49,11 +49,11 @@
   cursor: pointer;
 }
 
-#recipeHeader {
+#bookmarkHeader {
   display: flex;
   flex-direction: row;
 }
 
-#recipeHeader #titleBox {
+#bookmarkHeader #titleBox {
   flex: 1;
 }

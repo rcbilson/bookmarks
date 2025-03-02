@@ -6,7 +6,7 @@ import React from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import NavWidget from "./NavWidget.tsx";
-import RecipeQuery from "./RecipeQuery.tsx";
+import RecipeQuery from "./BookmarkQuery.tsx";
 
 function useQueryParams() {
   const { search } = useLocation();

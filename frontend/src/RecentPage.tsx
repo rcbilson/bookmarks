@@ -5,13 +5,13 @@
 import React from "react";
 
 import NavWidget from "./NavWidget.tsx";
-import RecipeQuery from "./RecipeQuery.tsx";
+import BookmarkQuery from "./BookmarkQuery.tsx";
 
 const RecentPage: React.FC = () => {
   return (
     <div id="recentContainer">
       <NavWidget/>
-      <RecipeQuery queryPath='/api/recents?count=10' />
+      <BookmarkQuery queryPath='/api/recents?count=10' />
     </div>
   );
 };

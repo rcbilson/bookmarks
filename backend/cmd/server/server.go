@@ -9,7 +9,7 @@ import (
 type specification struct {
 	Port         int    `default:"9000"`
 	FrontendPath string `default:"/home/richard/src/bookmark/frontend/dist"`
-	DbFile       string `default:"/home/richard/src/bookmark/data/bookmark.db"`
+	DbFile       string `default:"/home/richard/src/bookmarks/data/bookmark.db"`
 }
 
 var spec specification

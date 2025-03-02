@@ -11,7 +11,6 @@ import {
 } from '@tanstack/react-query'
 
 import ErrorPage from "./ErrorPage.jsx";
-import ShowPage from "./ShowPage.tsx";
 import RecentPage from "./RecentPage.tsx";
 import FavoritePage from "./FavoritePage.tsx";
 import SearchPage from "./SearchPage.tsx";
@@ -19,7 +18,7 @@ import SearchPage from "./SearchPage.tsx";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <RecentPage />,
+    element: <FavoritePage />,
     errorElement: <ErrorPage />,
   },
   {
@@ -29,10 +28,6 @@ const router = createBrowserRouter([
   {
     path: "/favorite",
     element: <FavoritePage />,
-  },
-  {
-    path: "/show/:recipeUrl",
-    element: <ShowPage />
   },
   {
     path: "/search",

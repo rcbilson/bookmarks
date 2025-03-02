@@ -18,7 +18,7 @@ interface Props {
 
 const BookmarkQuery: React.FC<Props> = ({queryPath}: Props) => {
   const navigate = useNavigate();
-
+ 
   const fetchQuery = (queryPath: string) => {
     return async () => {
       console.log("fetching " + queryPath);
@@ -40,7 +40,7 @@ const BookmarkQuery: React.FC<Props> = ({queryPath}: Props) => {
       navigate("/show/" + encodedUrl);
     }
   }
-
+ 
   if (isError) {
     return <div>An error occurred: {error.message}</div>
   }

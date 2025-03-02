@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -37,14 +36,10 @@ type bookmarkListStruct []bookmarkListEntryStruct
 
 var testFetcher = &mockFetcher{}
 
-func addTest(t *testing.T, db Db, url string) {
-	var reqData struct {
-		Url string `json:"url"`
-	}
-	reqData.Url = url
-	data, err := json.Marshal(reqData)
-	assert.NilError(t, err)
-	req := httptest.NewRequest(http.MethodPost, "/add", bytes.NewReader(data))
+func addTest(t *testing.T, db Db, reqUrl string) {
+	v := url.Values{}
+	v.Add("url", reqUrl)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/add?url=%s", v.Encode()), nil)
 	w := httptest.NewRecorder()
 	add(db, testFetcher)(w, req)
 	resp := w.Result()

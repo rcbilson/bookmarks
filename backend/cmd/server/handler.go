@@ -116,28 +116,28 @@ func hit(db Db) func(http.ResponseWriter, *http.Request) {
 
 func add(db Db, fetcher Fetcher) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
 		ctx := r.Context()
-		var req struct {
-			Url string `json:"url"`
-		}
-		err := json.NewDecoder(r.Body).Decode(&req)
-		if err != nil {
-			logError(w, fmt.Sprintf("JSON decode error: %v", err), http.StatusBadRequest)
+
+		urls, ok := r.URL.Query()["url"]
+		if !ok {
+			logError(w, fmt.Sprintf("No url provided in request %v", r.URL), http.StatusBadRequest)
 			return
 		}
+		url := urls[0]
 		doUpdate := false
-		bookmarkData, ok := db.Get(ctx, req.Url)
+		bookmarkData, ok := db.Get(ctx, url)
 		if !ok {
-			log.Println("fetching bookmark", req.Url)
+			log.Println("fetching bookmark", url)
 			doUpdate = true
-			bookmarkData, err = fetcher.FetchBookmark(ctx, req.Url)
+			bookmarkData, err = fetcher.FetchBookmark(ctx, url)
 			if err != nil {
 				logError(w, fmt.Sprintf("Error retrieving site: %v", err), http.StatusBadRequest)
 				return
 			}
 		}
 		if doUpdate {
-			err = db.Insert(ctx, req.Url, bookmarkData)
+			err = db.Insert(ctx, url, bookmarkData)
 			if err != nil {
 				log.Printf("Error inserting into db: %v", err)
 			}

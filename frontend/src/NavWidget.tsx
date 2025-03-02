@@ -1,5 +1,7 @@
 import React from "react";
+import axios from "axios";
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query'
 
 interface Props {
   contents?: string;
@@ -7,8 +9,9 @@ interface Props {
 
 const NavWidget: React.FC<Props> = ({contents}: Props) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient()
 
-  const handleSearchTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchTextChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchText = event.target.value;
     if (!searchText) {
       navigate("/");
@@ -16,7 +19,9 @@ const NavWidget: React.FC<Props> = ({contents}: Props) => {
     }
     try {
       new URL(searchText);
-      navigate("/show/" + encodeURIComponent(searchText));
+      await axios.post("/api/add?url=" + encodeURIComponent(searchText));
+      queryClient.invalidateQueries({ queryKey: ['bookmarkList'] })
+      navigate("/recent");
     } catch (_) {
       navigate("/search?q=" + encodeURIComponent(searchText));
     }

@@ -1,11 +1,11 @@
 {
-    "name": "Recipe App",
-    "short_name": "Recipe",
-    "description": "A simple recipe application",
+    "name": "Bookmarks App",
+    "short_name": "Bookmarks",
+    "description": "A simple bookmarks application",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "cornsilk",
+    "theme_color": "navy",
     "icons": [
         {
             "src": "/static/icon-192x192.png",

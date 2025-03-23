@@ -1,46 +1,47 @@
-// Supports weights 100-900
-//import '@fontsource-variable/outfit';
+import { Tabs } from '@chakra-ui/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Provider } from "@/components/ui/provider"
 
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query'
-
-import ErrorPage from "./ErrorPage.jsx";
-import RecentPage from "./RecentPage.tsx";
-import FavoritePage from "./FavoritePage.tsx";
-import SearchPage from "./SearchPage.tsx";
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <FavoritePage />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    path: "/recent",
-    element: <RecentPage />,
-  },
-  {
-    path: "/favorite",
-    element: <FavoritePage />,
-  },
-  {
-    path: "/search",
-    element: <SearchPage />
-  }
-]);
+import FavoritePage from "./FavoritePage"
+import RecentPage from "./RecentPage"
+import SearchPage from "./SearchPage"
+import AddBookmarkPage from "./AddBookmarkPage"
 
 const queryClient = new QueryClient()
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <Provider>
+      <QueryClientProvider client={queryClient}>
+        <Tabs.Root defaultValue="favorites" variant="line">
+          <Tabs.List>
+            <Tabs.Trigger value="favorites">
+              Favorites
+            </Tabs.Trigger>
+            <Tabs.Trigger value="recent">
+              Recent
+            </Tabs.Trigger>
+            <Tabs.Trigger value="search">
+              Search
+            </Tabs.Trigger>
+            <Tabs.Trigger value="add">
+              Add
+            </Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="favorites">
+            <FavoritePage />
+          </Tabs.Content>
+          <Tabs.Content value="recent">
+            <RecentPage />
+          </Tabs.Content>
+          <Tabs.Content value="search">
+            <SearchPage />
+          </Tabs.Content>
+          <Tabs.Content value="add">
+            <AddBookmarkPage />
+          </Tabs.Content>
+        </Tabs.Root>
+      </QueryClientProvider>
+    </Provider>
   )
 }

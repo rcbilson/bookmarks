@@ -3,17 +3,10 @@
 // the recipe url is fetched and the text area below the url is updated
 // with the recipe contents.
 import React from "react";
-
-import NavWidget from "./NavWidget.tsx";
-import BookmarkQuery from "./BookmarkQuery.tsx";
+import BookmarkQuery from "./BookmarkQuery";
 
 const RecentPage: React.FC = () => {
-  return (
-    <div id="recentContainer">
-      <NavWidget/>
-      <BookmarkQuery queryPath='/api/recents?count=10' />
-    </div>
-  );
+  return <BookmarkQuery queryPath='/api/recents?count=10' />;
 };
 
 export default RecentPage;

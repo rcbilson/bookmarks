@@ -1,4 +1,5 @@
 import { Tabs } from '@chakra-ui/react'
+import { LuBookmarkPlus, LuStar, LuClock, LuSearch } from "react-icons/lu"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Provider } from "@/components/ui/provider"
 
@@ -16,15 +17,19 @@ export default function App() {
         <Tabs.Root defaultValue="favorites" variant="line">
           <Tabs.List>
             <Tabs.Trigger value="favorites">
+              <LuStar />
               Favorites
             </Tabs.Trigger>
             <Tabs.Trigger value="recent">
+              <LuClock />
               Recent
             </Tabs.Trigger>
             <Tabs.Trigger value="search">
+              <LuSearch />
               Search
             </Tabs.Trigger>
             <Tabs.Trigger value="add">
+              <LuBookmarkPlus />
               Add
             </Tabs.Trigger>
           </Tabs.List>

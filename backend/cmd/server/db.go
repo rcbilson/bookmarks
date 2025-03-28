@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"os"
 	"unicode"
 	"unicode/utf8"
 
@@ -24,7 +25,23 @@ type DbContext struct {
 }
 
 func NewDb(dbfile string) (Db, error) {
+	_, err := os.Stat(dbfile)
+	if err != nil {
+		_, err = os.Create(dbfile)
+		if err != nil {
+			return nil, err
+		}
+	}
 	db, err := sql.Open("sqlite3", dbfile)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaVersion := 0
+	row := db.QueryRow("SELECT schemaVersion FROM metadata WHERE id = 0")
+	_ = row.Scan(&schemaVersion)
+
+	err = applySchema(db, schemaVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -38,29 +55,28 @@ func NewTestDb() (*DbContext, error) {
 		return nil, err
 	}
 
-	_, err = db.Exec(`
-CREATE TABLE bookmarks (
-  url text primary key,
-  title text,
-  lastAccess datetime,
-  hitCount integer
-);
-CREATE VIRTUAL TABLE fts USING fts5(
-  url UNINDEXED,
-  title,
-  content='bookmarks',
-  prefix='1 2 3',
-  tokenize='porter unicode61'
-);
-CREATE TRIGGER bookmarks_ai AFTER INSERT ON bookmarks BEGIN
-  INSERT INTO fts(rowid, url, title) VALUES (new.rowid, new.url, new.title);
-END;
-        `)
+	err = applySchema(db, 0)
 	if err != nil {
 		return nil, err
 	}
 
 	return &DbContext{db}, err
+}
+
+func applySchema(db *sql.DB, lastVersion int) error {
+	for _, sql := range schema[lastVersion:] {
+		_, err := db.Exec(sql)
+		if err != nil {
+			return err
+		}
+	}
+	_, err := db.Exec(`INSERT INTO metadata (id, schemaVersion) VALUES (0, @version)
+						ON CONFLICT DO UPDATE SET schemaVersion = @version`,
+		sql.Named("version", len(schema)))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (ctx *DbContext) Close() {

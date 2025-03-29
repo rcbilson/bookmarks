@@ -4,18 +4,23 @@
 // with the bookmark contents.
 import React from "react";
 import axios from "axios";
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { HStack, VStack } from "@chakra-ui/react"
+import { LuStar } from "react-icons/lu";
 
 type BookmarkEntry = {
   title: string;
   url: string;
+  isFavorite: boolean;
 }
 
 interface Props {
   queryPath: string;
 }
 
-const BookmarkQuery: React.FC<Props> = ({queryPath}: Props) => {
+const BookmarkQuery: React.FC<Props> = ({ queryPath }: Props) => {
+  const queryClient = useQueryClient();
+
   const fetchQuery = (queryPath: string) => {
     return async () => {
       console.log("fetching " + queryPath);
@@ -24,7 +29,7 @@ const BookmarkQuery: React.FC<Props> = ({queryPath}: Props) => {
     };
   };
 
-  const {isError, data, error} = useQuery({
+  const { isError, data, error } = useQuery({
     queryKey: ['bookmarkList', queryPath],
     queryFn: fetchQuery(queryPath),
   });
@@ -37,7 +42,18 @@ const BookmarkQuery: React.FC<Props> = ({queryPath}: Props) => {
       window.open(url, "_blank");
     }
   }
- 
+
+  const handleStarClick = (url: string, isFavorite: boolean) => {
+    return () => {
+      const encodedUrl = encodeURIComponent(url);
+      axios.post(`/api/setFavorite?url=${encodedUrl}&isFavorite=${isFavorite}`).then(
+        (_) => {
+          queryClient.invalidateQueries({ queryKey: ['bookmarkList'] });
+        }
+      );
+    }
+  }
+
   if (isError) {
     return <div>An error occurred: {error.message}</div>
   }
@@ -45,10 +61,15 @@ const BookmarkQuery: React.FC<Props> = ({queryPath}: Props) => {
   return (
     <div id="bookmarkList">
       {recents && recents.map((recent) =>
-        <div className="bookmarkEntry" key={recent.url} onClick={handleBookmarkClick(recent.url)}>
-          <div className="title">{recent.title}</div>
-          <div className="url">{new URL(recent.url).hostname}</div>
-        </div>
+        <HStack>
+          <LuStar onClick={handleStarClick(recent.url, !recent.isFavorite)} color={recent.isFavorite ? "gold" : "gray"} size={20} />
+          <VStack align="left" spaceY={0} >
+            <div className="bookmarkEntry" key={recent.url} onClick={handleBookmarkClick(recent.url)}>
+              <div className="title">{recent.title}</div>
+              <div className="url">{new URL(recent.url).hostname}</div>
+            </div>
+          </VStack>
+        </HStack>
       )}
     </div>
   );

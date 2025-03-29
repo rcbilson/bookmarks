@@ -112,44 +112,44 @@ func (dbctx *DbContext) Get(ctx context.Context, url string) (BookmarkData, bool
 	return BookmarkData{Title: title}, true
 }
 
-// Returns the most recently-accessed bookmarks
-func (dbctx *DbContext) Recents(ctx context.Context, count int) (bookmarkList, error) {
-	rows, err := dbctx.db.QueryContext(ctx, `SELECT title, url FROM bookmarks WHERE title != '""' ORDER BY lastAccess DESC LIMIT ?`, count)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+func scanBookmarkList(rows *sql.Rows) (bookmarkList, error) {
 	var result bookmarkList
 
 	for rows.Next() {
 		var r bookmarkEntry
-		err := rows.Scan(&r.Title, &r.Url)
+		var favorite int
+		err := rows.Scan(&r.Title, &r.Url, &favorite)
 		if err != nil {
 			return nil, err
+		}
+		if favorite == 1 {
+			r.IsFavorite = true
+		} else {
+			r.IsFavorite = false
 		}
 		result = append(result, r)
 	}
 	return result, nil
 }
 
-// Returns the most frequently-accessed bookmarks
-func (dbctx *DbContext) Favorites(ctx context.Context, count int) (bookmarkList, error) {
-	rows, err := dbctx.db.QueryContext(ctx, `SELECT title, url FROM bookmarks WHERE title != '""' AND favorite = 1 ORDER BY hitCount DESC LIMIT ?`, count)
+// Returns the most recently-accessed bookmarks
+func (dbctx *DbContext) Recents(ctx context.Context, count int) (bookmarkList, error) {
+	rows, err := dbctx.db.QueryContext(ctx, `SELECT title, url, favorite FROM bookmarks WHERE title != '""' ORDER BY lastAccess DESC LIMIT ?`, count)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var result bookmarkList
+	return scanBookmarkList(rows)
+}
 
-	for rows.Next() {
-		var r bookmarkEntry
-		err := rows.Scan(&r.Title, &r.Url)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, r)
+// Returns the most frequently-accessed bookmarks
+func (dbctx *DbContext) Favorites(ctx context.Context, count int) (bookmarkList, error) {
+	rows, err := dbctx.db.QueryContext(ctx, `SELECT title, url, favorite FROM bookmarks WHERE title != '""' AND favorite = 1 ORDER BY hitCount DESC LIMIT ?`, count)
+	if err != nil {
+		return nil, err
 	}
-	return result, nil
+	defer rows.Close()
+	return scanBookmarkList(rows)
 }
 
 // Insert the bookmark title corresponding to the url into the database

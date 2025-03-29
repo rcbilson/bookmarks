@@ -9,8 +9,9 @@ import (
 )
 
 type bookmarkEntry struct {
-	Title string `json:"title"`
-	Url   string `json:"url"`
+	Title      string `json:"title"`
+	Url        string `json:"url"`
+	IsFavorite bool   `json:"isFavorite"`
 }
 
 type bookmarkList []bookmarkEntry

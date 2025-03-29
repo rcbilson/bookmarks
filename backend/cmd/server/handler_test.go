@@ -39,7 +39,7 @@ var testFetcher = &mockFetcher{}
 func addTest(t *testing.T, db Db, reqUrl string) {
 	v := url.Values{}
 	v.Add("url", reqUrl)
-	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/add?url=%s", v.Encode()), nil)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/add?%s", v.Encode()), nil)
 	w := httptest.NewRecorder()
 	add(db, testFetcher)(w, req)
 	resp := w.Result()
@@ -76,8 +76,25 @@ func searchTest(t *testing.T, db Db, pattern string, expCount int) {
 	assert.Equal(t, expCount, len(bookmarkList))
 }
 
+func isFavoriteTest(t *testing.T, db Db, urlstr string, isFavorite string) {
+	v := url.Values{}
+	v.Add("url", urlstr)
+	v.Add("isFavorite", isFavorite)
+	req := httptest.NewRequest(
+		http.MethodPost,
+		fmt.Sprintf("/hit?%s", v.Encode()),
+		nil)
+	w := httptest.NewRecorder()
+	setFavorite(db)(w, req)
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+}
+
 func hitTest(t *testing.T, db Db, urlstr string) {
-	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/hit?url=%s", url.QueryEscape(urlstr)), nil)
+	v := url.Values{}
+	v.Add("url", urlstr)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/hit?%s", v.Encode()), nil)
 	w := httptest.NewRecorder()
 	hit(db)(w, req)
 	resp := w.Result()
@@ -105,6 +122,13 @@ func TestHandlers(t *testing.T) {
 	// ask for one recent, expect one
 	listTest(t, fetchRecents(db), "recent", 1, 1, nil)
 
+	// ask for one favorite, expect zero
+	listTest(t, fetchFavorites(db), "favorite", 1, 0, nil)
+
+	// set up two favorites
+	isFavoriteTest(t, db, urls[0], "true")
+	isFavoriteTest(t, db, urls[1], "true")
+
 	// ask for one favorite, expect one
 	listTest(t, fetchFavorites(db), "favorite", 1, 1, nil)
 
@@ -119,6 +143,12 @@ func TestHandlers(t *testing.T) {
 	var newResultList bookmarkListStruct
 	listTest(t, fetchFavorites(db), "favorite", 2, 2, &newResultList)
 	assert.Equal(t, resultList[1].Title, newResultList[0].Title)
+
+	// un-favorite one of the two
+	isFavoriteTest(t, db, urls[0], "false")
+
+	// ask for five favorites, expect one
+	listTest(t, fetchFavorites(db), "favorite", 5, 1, &resultList)
 
 	// should have one search hit
 	searchTest(t, db, "seriouseats", 1)

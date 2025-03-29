@@ -13,6 +13,7 @@ import (
 type Db interface {
 	Close()
 	Hit(ctx context.Context, url string) error
+	SetFavorite(ctx context.Context, url string, isFavorite bool) error
 	Get(ctx context.Context, url string) (BookmarkData, bool)
 	Recents(ctx context.Context, count int) (bookmarkList, error)
 	Favorites(ctx context.Context, count int) (bookmarkList, error)
@@ -89,6 +90,16 @@ func (dbctx *DbContext) Hit(ctx context.Context, url string) error {
 	return err
 }
 
+// Marks a bookmark as being a favorite, or not
+func (dbctx *DbContext) SetFavorite(ctx context.Context, url string, isFavorite bool) error {
+	favorite := 0
+	if isFavorite {
+		favorite = 1
+	}
+	_, err := dbctx.db.ExecContext(ctx, "UPDATE bookmarks SET favorite = ? WHERE url = ?", favorite, url)
+	return err
+}
+
 // Returns a bookmark title if one exists in the database
 func (dbctx *DbContext) Get(ctx context.Context, url string) (BookmarkData, bool) {
 	row := dbctx.db.QueryRowContext(ctx, "SELECT title FROM bookmarks WHERE url = ?", url)
@@ -123,7 +134,7 @@ func (dbctx *DbContext) Recents(ctx context.Context, count int) (bookmarkList, e
 
 // Returns the most frequently-accessed bookmarks
 func (dbctx *DbContext) Favorites(ctx context.Context, count int) (bookmarkList, error) {
-	rows, err := dbctx.db.QueryContext(ctx, `SELECT title, url FROM bookmarks WHERE title != '""' ORDER BY hitCount DESC LIMIT ?`, count)
+	rows, err := dbctx.db.QueryContext(ctx, `SELECT title, url FROM bookmarks WHERE title != '""' AND favorite = 1 ORDER BY hitCount DESC LIMIT ?`, count)
 	if err != nil {
 		return nil, err
 	}

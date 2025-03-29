@@ -22,6 +22,7 @@ func handler(db Db, fetcher Fetcher, port int, frontendPath string) {
 	http.Handle("GET /api/favorites", http.HandlerFunc(fetchFavorites(db)))
 	http.Handle("GET /api/search", http.HandlerFunc(search(db)))
 	http.Handle("POST /api/hit", http.HandlerFunc(hit(db)))
+	http.Handle("POST /api/setFavorite", http.HandlerFunc(setFavorite(db)))
 	// bundled assets and static resources
 	http.Handle("GET /assets/", http.FileServer(http.Dir(frontendPath)))
 	http.Handle("GET /static/", http.FileServer(http.Dir(frontendPath)))
@@ -103,10 +104,37 @@ func hit(db Db) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		url, ok := r.URL.Query()["url"]
 		if !ok {
-			logError(w, "No search terms provided", http.StatusBadRequest)
+			logError(w, "No url provided", http.StatusBadRequest)
 			return
 		}
 		err := db.Hit(r.Context(), url[0])
+		if err != nil {
+			logError(w, fmt.Sprintf("Error updating database: %v", err), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func setFavorite(db Db) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		url, ok := r.URL.Query()["url"]
+		if !ok {
+			logError(w, "No url provided", http.StatusBadRequest)
+			return
+		}
+		isFavorite, ok := r.URL.Query()["isFavorite"]
+		if !ok {
+			logError(w, "No url provided", http.StatusBadRequest)
+			return
+		}
+		favorite := false
+		if isFavorite[0] == "true" {
+			favorite = true
+		} else if isFavorite[0] != "false" {
+			logError(w, "Expected true/false for isFavorite", http.StatusBadRequest)
+			return
+		}
+		err := db.SetFavorite(r.Context(), url[0], favorite)
 		if err != nil {
 			logError(w, fmt.Sprintf("Error updating database: %v", err), http.StatusInternalServerError)
 			return

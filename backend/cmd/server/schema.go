@@ -1,7 +1,7 @@
 package main
 
 var schema = []string{
-	// version 0
+	// version 1
 	`
 CREATE TABLE metadata (
   id integer primary key,
@@ -43,5 +43,10 @@ CREATE TRIGGER bookmarks_au AFTER UPDATE ON bookmarks BEGIN
 END;
 
 INSERT INTO fts(fts) VALUES('rebuild');
-`,
+	`,
+
+	// version 2
+	`
+ALTER TABLE bookmarks ADD COLUMN favorite integer DEFAULT 0;
+	`,
 }

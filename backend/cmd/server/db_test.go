@@ -50,8 +50,17 @@ func TestFavorites(t *testing.T) {
 	assert.NilError(t, db.Insert(ctx, "http://example.com", BookmarkData{Title: `bookmark`}))
 	assert.NilError(t, db.Insert(ctx, "http://example2.com", BookmarkData{Title: `bookmark2`}))
 
-	// ask for 5, expect 2
+	// no favorites yet
 	faves, err := db.Favorites(ctx, 5)
+	assert.NilError(t, err)
+	assert.Equal(t, 0, len(faves))
+
+	// set as favorites
+	assert.NilError(t, db.SetFavorite(ctx, "http://example.com", true))
+	assert.NilError(t, db.SetFavorite(ctx, "http://example2.com", true))
+
+	// ask for 5, expect 2
+	faves, err = db.Favorites(ctx, 5)
 	assert.NilError(t, err)
 	assert.Equal(t, 2, len(faves))
 

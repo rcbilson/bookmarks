@@ -5,7 +5,7 @@
 import React from "react";
 import axios from "axios";
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { HStack, VStack } from "@chakra-ui/react"
+import { HStack, VStack, Box } from "@chakra-ui/react"
 import { LuStar } from "react-icons/lu";
 
 type BookmarkEntry = {
@@ -62,7 +62,9 @@ const BookmarkQuery: React.FC<Props> = ({ queryPath }: Props) => {
     <div id="bookmarkList">
       {recents && recents.map((recent) =>
         <HStack>
-          <LuStar onClick={handleStarClick(recent.url, !recent.isFavorite)} color={recent.isFavorite ? "gold" : "gray"} size={20} />
+          <Box w="20px">
+            <LuStar onClick={handleStarClick(recent.url, !recent.isFavorite)} color={recent.isFavorite ? "gold" : "gray"} size={20} />
+          </Box>
           <VStack align="left" spaceY={0} >
             <div className="bookmarkEntry" key={recent.url} onClick={handleBookmarkClick(recent.url)}>
               <div className="title">{recent.title}</div>

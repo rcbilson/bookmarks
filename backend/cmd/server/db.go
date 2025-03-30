@@ -169,20 +169,10 @@ func (dbctx *DbContext) Search(ctx context.Context, pattern string) (bookmarkLis
 	if unicode.IsLetter(lastRune) {
 		pattern += "*"
 	}
-	rows, err := dbctx.db.QueryContext(ctx, "SELECT title, url FROM fts where fts MATCH ? ORDER BY rank", pattern)
+	rows, err := dbctx.db.QueryContext(ctx, "SELECT title, url, favorite FROM fts where fts MATCH ? ORDER BY rank", pattern)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var result bookmarkList
-
-	for rows.Next() {
-		var r bookmarkEntry
-		err := rows.Scan(&r.Title, &r.Url)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, r)
-	}
-	return result, nil
+	return scanBookmarkList(rows)
 }

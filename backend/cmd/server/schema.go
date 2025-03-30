@@ -49,4 +49,36 @@ INSERT INTO fts(fts) VALUES('rebuild');
 	`
 ALTER TABLE bookmarks ADD COLUMN favorite integer DEFAULT 0;
 	`,
+	// version 3
+	`
+DROP TABLE IF EXISTS fts;
+
+CREATE VIRTUAL TABLE fts USING fts5(
+  url UNINDEXED,
+  title,
+  favorite,
+  content='bookmarks',
+  prefix='1 2 3',
+  tokenize='porter unicode61'
+);
+
+-- Triggers to keep the FTS index up to date.
+DROP TRIGGER IF EXISTS bookmarks_ai;
+CREATE TRIGGER bookmarks_ai AFTER INSERT ON bookmarks BEGIN
+  INSERT INTO fts(rowid, url, title, favorite) VALUES (new.rowid, new.url, new.title, new.favorite);
+END;
+
+DROP TRIGGER IF EXISTS bookmarks_ad;
+CREATE TRIGGER bookmarks_ad AFTER DELETE ON bookmarks BEGIN
+  INSERT INTO fts(fts, rowid, url, title, favorite) VALUES('delete', old.rowid, old.url, old.title, old.favorite);
+END;
+
+DROP TRIGGER IF EXISTS bookmarks_au;
+CREATE TRIGGER bookmarks_au AFTER UPDATE ON bookmarks BEGIN
+  INSERT INTO fts(fts, rowid, url, title, favorite) VALUES('delete', old.rowid, old.url, old.title, old.favorite);
+  INSERT INTO fts(rowid, url, title, favorite) VALUES (new.rowid, new.url, new.title, new.favorite);
+END;
+
+INSERT INTO fts(fts) VALUES('rebuild');
+	`,
 }

@@ -1,11 +1,11 @@
 module knilson.org/recipe
 
-go 1.24.0
+go 1.24.2
 
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/mattn/go-sqlite3 v1.14.24
-	golang.org/x/net v0.35.0
+	github.com/mattn/go-sqlite3 v1.14.28
+	golang.org/x/net v0.39.0
 	gotest.tools v2.2.0+incompatible
 )
 

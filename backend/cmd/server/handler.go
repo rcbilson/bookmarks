@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type bookmarkEntry struct {
@@ -157,9 +158,17 @@ func add(db Db, fetcher Fetcher) func(http.ResponseWriter, *http.Request) {
 		doUpdate := false
 		bookmarkData, ok := db.Get(ctx, url)
 		if !ok {
-			log.Println("fetching bookmark", url)
 			doUpdate = true
-			bookmarkData, err = fetcher.FetchBookmark(ctx, url)
+			title := strings.TrimSpace(r.URL.Query().Get("title"))
+			if title != "" {
+				// The caller (e.g. a share target) supplied a title, so
+				// there's no need to fetch the page.
+				log.Println("adding bookmark with supplied title", url)
+				bookmarkData = BookmarkData{Title: title}
+			} else {
+				log.Println("fetching bookmark", url)
+				bookmarkData, err = fetcher.FetchBookmark(ctx, url)
+			}
 			if err != nil {
 				logError(w, fmt.Sprintf("Error retrieving site: %v", err), http.StatusBadRequest)
 				return

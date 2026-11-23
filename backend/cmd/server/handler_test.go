@@ -13,13 +13,15 @@ import (
 )
 
 type mockFetcher struct {
+	fetchCount int
 }
 
 func (*mockFetcher) Fetch(_ context.Context, url string) ([]byte, error) {
 	return []byte("<html><head><title>title for " + url + "</title></head></html>"), nil
 }
 
-func (*mockFetcher) FetchBookmark(_ context.Context, url string) (BookmarkData, error) {
+func (f *mockFetcher) FetchBookmark(_ context.Context, url string) (BookmarkData, error) {
+	f.fetchCount++
 	return BookmarkData{Title: "title for " + url + "</title></head></html>"}, nil
 }
 
@@ -100,6 +102,31 @@ func hitTest(t *testing.T, db Db, urlstr string) {
 	resp := w.Result()
 	defer resp.Body.Close()
 	assert.Equal(t, resp.StatusCode, http.StatusOK)
+}
+
+func TestAddWithTitle(t *testing.T) {
+	db, err := NewTestDb()
+	assert.NilError(t, err)
+
+	before := testFetcher.fetchCount
+	v := url.Values{}
+	v.Add("url", urls[0])
+	v.Add("title", "  Shared Title  ")
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/add?%s", v.Encode()), nil)
+	w := httptest.NewRecorder()
+	add(db, testFetcher)(w, req)
+	resp := w.Result()
+	defer resp.Body.Close()
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+	assert.Equal(t, testFetcher.fetchCount, before, "page should not be fetched when a title is supplied")
+
+	var resultList bookmarkListStruct
+	listTest(t, fetchRecents(db), "recent", 5, 1, &resultList)
+	assert.Equal(t, resultList[0].Title, "Shared Title")
+
+	// without a title, the page is fetched
+	addTest(t, db, urls[1])
+	assert.Equal(t, testFetcher.fetchCount, before+1)
 }
 
 // TODO: test something other than the happy path
